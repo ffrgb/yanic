@@ -24,7 +24,7 @@ type Link struct {
 	SourceMAC string
 	TargetID  string
 	TargetMAC string
-	TQ        int
+	TQ        float32
 }
 
 // IsGateway returns whether the node is a gateway

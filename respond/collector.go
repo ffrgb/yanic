@@ -17,7 +17,7 @@ import (
 
 // Collector for a specificle respond messages
 type Collector struct {
-	connections []*net.UDPConn          // UDP sockets
+	connections []multicastConn         // UDP sockets
 	ifaceToConn map[string]*net.UDPConn // map from interface name to UDP socket
 	port        int
 
@@ -29,14 +29,18 @@ type Collector struct {
 	stop     chan interface{}
 }
 
+type multicastConn struct {
+	Conn  *net.UDPConn
+	Group net.IP
+}
+
 // NewCollector creates a Collector struct
-func NewCollector(db database.Connection, nodes *runtime.Nodes, sites []string, ifaces []string, port int) *Collector {
+func NewCollector(db database.Connection, nodes *runtime.Nodes, sites []string, ifaces []InterfaceConfig) *Collector {
 
 	coll := &Collector{
 		db:          db,
 		nodes:       nodes,
 		sites:       sites,
-		port:        port,
 		queue:       make(chan *Response, 400),
 		stop:        make(chan interface{}),
 		ifaceToConn: make(map[string]*net.UDPConn),
@@ -55,28 +59,44 @@ func NewCollector(db database.Connection, nodes *runtime.Nodes, sites []string, 
 	return coll
 }
 
-func (coll *Collector) listenUDP(iface string) {
-	if _, found := coll.ifaceToConn[iface]; found {
-		log.Panicf("can not listen twice on %s", iface)
+func (coll *Collector) listenUDP(iface InterfaceConfig) {
+	if _, found := coll.ifaceToConn[iface.InterfaceName]; found {
+		log.Panicf("can not listen twice on %s", iface.InterfaceName)
 	}
-	linkLocalAddr, err := getLinkLocalAddr(iface)
-	if err != nil {
-		log.Panic(err)
+
+	var addr net.IP
+
+	var err error
+	if iface.IP != "" {
+		addr = net.ParseIP(iface.IP)
+	} else {
+		addr, err = getLinkLocalAddr(iface.InterfaceName)
+		if err != nil {
+			log.Panic(err)
+		}
+	}
+
+	multicastIP := multicastGroup
+	if iface.MulticastGroup != "" {
+		multicastIP = iface.MulticastGroup
 	}
 
 	// Open socket
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{
-		IP:   linkLocalAddr,
-		Port: coll.port,
-		Zone: iface,
+		IP:   addr,
+		Port: iface.Port,
+		Zone: iface.InterfaceName,
 	})
 	if err != nil {
 		log.Panic(err)
 	}
 	conn.SetReadBuffer(maxDataGramSize)
 
-	coll.ifaceToConn[iface] = conn
-	coll.connections = append(coll.connections, conn)
+	coll.ifaceToConn[iface.InterfaceName] = conn
+	coll.connections = append(coll.connections, multicastConn{
+		Conn:  conn,
+		Group: net.ParseIP(multicastIP),
+	})
 
 	// Start receiver
 	go coll.receiver(conn)
@@ -122,7 +142,7 @@ func (coll *Collector) Start(interval time.Duration) {
 func (coll *Collector) Close() {
 	close(coll.stop)
 	for _, conn := range coll.connections {
-		conn.Close()
+		conn.Conn.Close()
 	}
 	close(coll.queue)
 }
@@ -139,7 +159,7 @@ func (coll *Collector) sendOnce() {
 func (coll *Collector) sendMulticast() {
 	log.Println("sending multicasts")
 	for _, conn := range coll.connections {
-		coll.sendPacket(conn, multiCastGroup)
+		coll.sendPacket(conn.Conn, conn.Group)
 	}
 }
 
@@ -167,7 +187,7 @@ func (coll *Collector) sendUnicasts(seenBefore jsontime.Time) {
 
 // SendPacket sends a UDP request to the given unicast or multicast address on the first UDP socket
 func (coll *Collector) SendPacket(destination net.IP) {
-	coll.sendPacket(coll.connections[0], destination)
+	coll.sendPacket(coll.connections[0].Conn, destination)
 }
 
 // sendPacket sends a UDP request to the given unicast or multicast address on the given UDP socket
@@ -201,7 +221,7 @@ func (coll *Collector) sender() {
 func (coll *Collector) parser() {
 	for obj := range coll.queue {
 		if data, err := obj.parse(); err != nil {
-			log.Println("unable to decode response from", obj.Address.String(), err, "\n", string(obj.Raw))
+			log.Println("unable to decode response from", obj.Address.String(), err)
 		} else {
 			coll.saveResponse(obj.Address, data)
 		}

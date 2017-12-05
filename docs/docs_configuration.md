@@ -14,9 +14,13 @@ Group for configuration of respondd request.
 enable           = true
 # synchronize    = "1m"
 collect_interval = "1m"
-interfaces       = ["br-ffhb"]
 sites            = ["ffhb"]
-#port            = 10001
+
+[[respondd.interfaces]]
+ifname = "br-ffhb"
+#ip = "fe80::..."
+#multicast = "ff02::2:1001"
+#port = 10001
 ```
 {% endmethod %}
 
@@ -54,16 +58,6 @@ collect_interval = "1m"
 {% endmethod %}
 
 
-### interfaces
-{% method %}
-Interface that has an IP in your mesh network
-{% sample lang="toml" %}
-```toml
-interfaces       = ["br-ffhb"]
-```
-{% endmethod %}
-
-
 ### sites
 {% method %}
 List of sites to save stats for (empty for global only)
@@ -73,6 +67,51 @@ sites            = ["ffhb"]
 ```
 {% endmethod %}
 
+
+### [[respondd.interfaces]]
+{% method %}
+Interface that has an ip address in your mesh network.
+It is possible to have multiple interfaces, just add this group again with new parameters (see toml [[array of table]]).
+{% sample lang="toml" %}
+```toml
+[[respondd.interfaces]]
+ifname = "br-ffhb"
+#ip        = "fe80::..."
+#multicast = "ff02::2:1001"
+#port      = 10001
+```
+{% endmethod %}
+
+### ifname
+{% method %}
+name of interface on which this collector is running (ifname)
+{% sample lang="toml" %}
+```toml
+ifname              = "br-ffhb"
+```
+{% endmethod %}
+
+### ip
+{% method %}
+IP is the own address which is used for sending.
+If not set or set with empty string it will take the link-local address of the interface.
+(Needed in babel for a mesh-network wide routeable ip addreess)
+{% sample lang="toml" %}
+```toml
+ip                = "fe80::..."
+```
+{% endmethod %}
+
+### multicast
+{% method %}
+Multicast address to destination of respondd.
+If not set or set with empty string it will take the batman default multicast address `ff02::2:1001`
+(Needed in babel for a mesh-network wide routeable multicast addreess `ff05::2:1001`)
+{% sample lang="toml" %}
+```toml
+multicast         = "ff02::2:1001"
+```
+{% endmethod %}
 
 ### port
 {% method %}

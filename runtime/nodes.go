@@ -120,7 +120,20 @@ func (nodes *Nodes) NodeLinks(node *Node) (result []Link) {
 					SourceMAC: sourceMAC,
 					TargetID:  neighbourID,
 					TargetMAC: neighbourMAC,
-					TQ:        link.Tq,
+					TQ:        float32(link.Tq) / 255.0,
+				})
+			}
+		}
+	}
+	for sourceMAC, batadv := range neighbours.Babel {
+		for neighbourMAC, link := range batadv.Neighbours {
+			if neighbourID := nodes.ifaceToNodeID[neighbourMAC]; neighbourID != "" {
+				result = append(result, Link{
+					SourceID:  neighbours.NodeID,
+					SourceMAC: sourceMAC,
+					TargetID:  neighbourID,
+					TargetMAC: neighbourMAC,
+					TQ:        1.0 - (float32(link.Cost) / 65535.0),
 				})
 			}
 		}

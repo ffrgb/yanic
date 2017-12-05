@@ -15,5 +15,5 @@ func (conn *Connection) InsertLink(link *runtime.Link, t time.Time) {
 	tags.SetString("target.id", link.TargetID)
 	tags.SetString("target.mac", link.TargetMAC)
 
-	conn.addPoint(MeasurementLink, tags, models.Fields{"tq": float32(link.TQ) / 2.55}, t)
+	conn.addPoint(MeasurementLink, tags, models.Fields{"tq": link.TQ * 100}, t)
 }
