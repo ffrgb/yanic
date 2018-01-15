@@ -178,7 +178,7 @@ func TestLinksNodes(t *testing.T) {
 			Batadv: map[string]data.BatadvNeighbours{
 				"f4:f2:6d:d7:a3:0b": {
 					Neighbours: map[string]data.BatmanLink{
-						"f4:f2:6d:d7:a3:0a": data.BatmanLink{
+						"f4:f2:6d:d7:a3:0a": {
 							Tq: 204, Lastseen: 0.42,
 						},
 					},

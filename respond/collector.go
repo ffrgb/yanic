@@ -70,7 +70,7 @@ func (coll *Collector) listenUDP(iface InterfaceConfig) {
 	if iface.IP != "" {
 		addr = net.ParseIP(iface.IP)
 	} else {
-		addr, err = getLinkLocalAddr(iface.InterfaceName)
+		addr, err = getAddr(iface.InterfaceName)
 		if err != nil {
 			log.Panic(err)
 		}
@@ -102,8 +102,8 @@ func (coll *Collector) listenUDP(iface InterfaceConfig) {
 	go coll.receiver(conn)
 }
 
-// Returns the first link local unicast address for the given interface name
-func getLinkLocalAddr(ifname string) (net.IP, error) {
+// Returns a address for the given interface name
+func getAddr(ifname string) (net.IP, error) {
 	iface, err := net.InterfaceByName(ifname)
 	if err != nil {
 		return nil, err
@@ -113,11 +113,21 @@ func getLinkLocalAddr(ifname string) (net.IP, error) {
 	if err != nil {
 		return nil, err
 	}
+	var ip net.IP
 
 	for _, addr := range addresses {
-		if ipnet := addr.(*net.IPNet); ipnet.IP.IsLinkLocalUnicast() {
-			return ipnet.IP, nil
+		ipnet, ok := addr.(*net.IPNet)
+		if !ok {
+			continue
 		}
+		if ipnet.IP.IsGlobalUnicast() {
+			ip = ipnet.IP
+		} else if ipnet.IP.IsLinkLocalUnicast() && ip == nil {
+			ip = ipnet.IP
+		}
+	}
+	if ip != nil {
+		return ip, nil
 	}
 	return nil, fmt.Errorf("unable to find link local unicast address for %s", ifname)
 }
