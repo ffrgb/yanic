@@ -68,8 +68,8 @@ type Link struct {
 	Target        string  `json:"target"`
 	SourceTQ      float32 `json:"source_tq"`
 	TargetTQ      float32 `json:"target_tq"`
-	SourceAddress string  `json:"source_mac"`
-	TargetAddress string  `json:"target_mac"`
+	SourceAddress string  `json:"source_addr"`
+	TargetAddress string  `json:"target_addr"`
 }
 
 func NewNode(nodes *runtime.Nodes, n *runtime.Node) *Node {
