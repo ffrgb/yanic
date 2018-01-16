@@ -31,13 +31,10 @@ type LLDPLink struct {
 // BabelLink struct
 type BabelLink struct {
 	// How need this:
-	Protocol         string `json:"protocol"`
-	RXCost           int    `json:"rxcost"`
-	TXCost           int    `json:"txcost"`
-	Cost             int    `json:"cost"`
-	Reachability     int    `json:"reachability"`
-	AddressLinkLocal string `json:"address-ll"`
-	AddressMesh      string `json:"address-mesh"`
+	RXCost       int `json:"rxcost"`
+	TXCost       int `json:"txcost"`
+	Cost         int `json:"cost"`
+	Reachability int `json:"reachability"`
 }
 
 // BatadvNeighbours struct
@@ -47,8 +44,9 @@ type BatadvNeighbours struct {
 
 // BabelNeighbours struct
 type BabelNeighbours struct {
-	InterfaceName string               `json:"ifname"`
-	Neighbours    map[string]BabelLink `json:"neighbours"`
+	Protocol         string               `json:"protocol"`
+	LinkLocalAddress string               `json:"ll-addr"`
+	Neighbours       map[string]BabelLink `json:"neighbours"`
 }
 
 // WifiNeighbours struct

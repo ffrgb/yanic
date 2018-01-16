@@ -63,6 +63,9 @@ type Software struct {
 		Version string `json:"version,omitempty"`
 		Compat  int    `json:"compat,omitempty"`
 	} `json:"batman-adv,omitempty"`
+	Babeld struct {
+		Version string `json:"version,omitempty"`
+	} `json:"babeld,omitempty"`
 	Fastd struct {
 		Enabled bool   `json:"enabled,omitempty"`
 		Version string `json:"version,omitempty"`

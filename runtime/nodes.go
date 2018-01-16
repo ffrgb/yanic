@@ -47,7 +47,7 @@ func (nodes *Nodes) AddNode(node *Node) {
 	nodes.Lock()
 	defer nodes.Unlock()
 	nodes.List[nodeinfo.NodeID] = node
-	nodes.readIfaces(nodeinfo)
+	nodes.readIfaces(nodeinfo, node.Neighbours)
 }
 
 // Update a Node
@@ -64,7 +64,7 @@ func (nodes *Nodes) Update(nodeID string, res *data.ResponseData) *Node {
 		nodes.List[nodeID] = node
 	}
 	if res.NodeInfo != nil {
-		nodes.readIfaces(res.NodeInfo)
+		nodes.readIfaces(res.NodeInfo, res.Neighbours)
 	}
 	nodes.Unlock()
 
@@ -116,24 +116,24 @@ func (nodes *Nodes) NodeLinks(node *Node) (result []Link) {
 		for neighbourMAC, link := range batadv.Neighbours {
 			if neighbourID := nodes.ifaceToNodeID[neighbourMAC]; neighbourID != "" {
 				result = append(result, Link{
-					SourceID:  neighbours.NodeID,
-					SourceMAC: sourceMAC,
-					TargetID:  neighbourID,
-					TargetMAC: neighbourMAC,
-					TQ:        float32(link.Tq) / 255.0,
+					SourceID:      neighbours.NodeID,
+					SourceAddress: sourceMAC,
+					TargetID:      neighbourID,
+					TargetAddress: neighbourMAC,
+					TQ:            float32(link.Tq) / 255.0,
 				})
 			}
 		}
 	}
-	for sourceMAC, batadv := range neighbours.Babel {
-		for neighbourMAC, link := range batadv.Neighbours {
-			if neighbourID := nodes.ifaceToNodeID[neighbourMAC]; neighbourID != "" {
+	for _, iface := range neighbours.Babel {
+		for neighbourIP, link := range iface.Neighbours {
+			if neighbourID := nodes.ifaceToNodeID[neighbourIP]; neighbourID != "" {
 				result = append(result, Link{
-					SourceID:  neighbours.NodeID,
-					SourceMAC: sourceMAC,
-					TargetID:  neighbourID,
-					TargetMAC: neighbourMAC,
-					TQ:        1.0 - (float32(link.Cost) / 65535.0),
+					SourceID:      neighbours.NodeID,
+					SourceAddress: iface.LinkLocalAddress,
+					TargetID:      neighbourID,
+					TargetAddress: neighbourIP,
+					TQ:            1.0 - (float32(link.Cost) / 65535.0),
 				})
 			}
 		}
@@ -181,30 +181,48 @@ func (nodes *Nodes) expire() {
 }
 
 // adds the nodes interface addresses to the internal map
-func (nodes *Nodes) readIfaces(nodeinfo *data.NodeInfo) {
-	nodeID := nodeinfo.NodeID
-	network := nodeinfo.Network
+func (nodes *Nodes) readIfaces(nodeinfo *data.NodeInfo, neighbours *data.Neighbours) {
+	if nodeinfo != nil {
 
-	if nodeID == "" {
-		log.Println("nodeID missing in nodeinfo")
-		return
-	}
+		nodeID := nodeinfo.NodeID
+		network := nodeinfo.Network
 
-	addresses := []string{network.Mac}
-
-	for _, batinterface := range network.Mesh {
-		addresses = append(addresses, batinterface.Addresses()...)
-	}
-
-	for _, mac := range addresses {
-		if mac == "" {
-			continue
+		if nodeID == "" {
+			log.Println("nodeID missing in nodeinfo")
+			return
 		}
-		if oldNodeID, _ := nodes.ifaceToNodeID[mac]; oldNodeID != nodeID {
-			if oldNodeID != "" {
-				log.Printf("override nodeID from %s to %s on MAC address %s", oldNodeID, nodeID, mac)
+
+		addresses := []string{network.Mac}
+
+		for _, batinterface := range network.Mesh {
+			addresses = append(addresses, batinterface.Addresses()...)
+		}
+
+		for _, mac := range addresses {
+			if mac == "" {
+				continue
 			}
-			nodes.ifaceToNodeID[mac] = nodeID
+			if oldNodeID, _ := nodes.ifaceToNodeID[mac]; oldNodeID != nodeID {
+				if oldNodeID != "" {
+					log.Printf("override nodeID from %s to %s on MAC address %s", oldNodeID, nodeID, mac)
+				}
+				nodes.ifaceToNodeID[mac] = nodeID
+			}
+		}
+	}
+	if neighbours != nil {
+		nodeID := neighbours.NodeID
+		if nodeID == "" {
+			log.Println("nodeID missing in neighbours")
+			return
+		}
+		for _, iface := range neighbours.Babel {
+			if oldNodeID, _ := nodes.ifaceToNodeID[iface.LinkLocalAddress]; oldNodeID != nodeID {
+				if oldNodeID != "" {
+					log.Printf("override nodeID from %s to %s on link local address %s", oldNodeID, nodeID, iface.LinkLocalAddress)
+				}
+				nodes.ifaceToNodeID[iface.LinkLocalAddress] = nodeID
+			}
 		}
 	}
 }
@@ -219,7 +237,7 @@ func (nodes *Nodes) load() {
 			nodes.Lock()
 			for _, node := range nodes.List {
 				if node.Nodeinfo != nil {
-					nodes.readIfaces(node.Nodeinfo)
+					nodes.readIfaces(node.Nodeinfo, node.Neighbours)
 				}
 			}
 			nodes.Unlock()

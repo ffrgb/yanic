@@ -47,11 +47,11 @@ func transform(nodes *runtime.Nodes) *Meshviewer {
 		for _, linkOrigin := range nodes.NodeLinks(nodeOrigin) {
 			var key string
 			// keep source and target in the same order
-			switchSourceTarget := strings.Compare(linkOrigin.SourceMAC, linkOrigin.TargetMAC) > 0
+			switchSourceTarget := strings.Compare(linkOrigin.SourceAddress, linkOrigin.TargetAddress) > 0
 			if switchSourceTarget {
-				key = fmt.Sprintf("%s-%s", linkOrigin.SourceMAC, linkOrigin.TargetMAC)
+				key = fmt.Sprintf("%s-%s", linkOrigin.SourceAddress, linkOrigin.TargetAddress)
 			} else {
-				key = fmt.Sprintf("%s-%s", linkOrigin.TargetMAC, linkOrigin.SourceMAC)
+				key = fmt.Sprintf("%s-%s", linkOrigin.TargetAddress, linkOrigin.SourceAddress)
 			}
 
 			tq := float32(linkOrigin.TQ)
@@ -60,16 +60,16 @@ func transform(nodes *runtime.Nodes) *Meshviewer {
 				if switchSourceTarget {
 					link.TargetTQ = tq
 					if link.Type == "other" {
-						link.Type = typeList[linkOrigin.TargetMAC]
-					} else if link.Type != typeList[linkOrigin.TargetMAC] {
-						log.Printf("different linktypes %s:%s current: %s source: %s target: %s", linkOrigin.SourceMAC, linkOrigin.TargetMAC, link.Type, typeList[linkOrigin.SourceMAC], typeList[linkOrigin.TargetMAC])
+						link.Type = typeList[linkOrigin.TargetAddress]
+					} else if link.Type != typeList[linkOrigin.TargetAddress] {
+						log.Printf("different linktypes %s:%s current: %s source: %s target: %s", linkOrigin.SourceAddress, linkOrigin.TargetAddress, link.Type, typeList[linkOrigin.SourceAddress], typeList[linkOrigin.TargetAddress])
 					}
 				} else {
 					link.SourceTQ = tq
 					if link.Type == "other" {
-						link.Type = typeList[linkOrigin.SourceMAC]
-					} else if link.Type != typeList[linkOrigin.SourceMAC] {
-						log.Printf("different linktypes %s:%s current: %s source: %s target: %s", linkOrigin.SourceMAC, linkOrigin.TargetMAC, link.Type, typeList[linkOrigin.SourceMAC], typeList[linkOrigin.TargetMAC])
+						link.Type = typeList[linkOrigin.SourceAddress]
+					} else if link.Type != typeList[linkOrigin.SourceAddress] {
+						log.Printf("different linktypes %s:%s current: %s source: %s target: %s", linkOrigin.SourceAddress, linkOrigin.TargetAddress, link.Type, typeList[linkOrigin.SourceAddress], typeList[linkOrigin.TargetAddress])
 					}
 				}
 				if link.Type == "" {
@@ -78,20 +78,20 @@ func transform(nodes *runtime.Nodes) *Meshviewer {
 				continue
 			}
 			link := &Link{
-				Type:      typeList[linkOrigin.SourceMAC],
-				Source:    linkOrigin.SourceID,
-				SourceMAC: linkOrigin.SourceMAC,
-				Target:    linkOrigin.TargetID,
-				TargetMAC: linkOrigin.TargetMAC,
-				SourceTQ:  linkOrigin.TQ,
-				TargetTQ:  linkOrigin.TQ,
+				Type:          typeList[linkOrigin.SourceAddress],
+				Source:        linkOrigin.SourceID,
+				SourceAddress: linkOrigin.SourceAddress,
+				Target:        linkOrigin.TargetID,
+				TargetAddress: linkOrigin.TargetAddress,
+				SourceTQ:      linkOrigin.TQ,
+				TargetTQ:      linkOrigin.TQ,
 			}
 			if switchSourceTarget {
-				link.Type = typeList[linkOrigin.TargetMAC]
+				link.Type = typeList[linkOrigin.TargetAddress]
 				link.Source = linkOrigin.TargetID
-				link.SourceMAC = linkOrigin.TargetMAC
+				link.SourceAddress = linkOrigin.TargetAddress
 				link.Target = linkOrigin.SourceID
-				link.TargetMAC = linkOrigin.SourceMAC
+				link.TargetAddress = linkOrigin.SourceAddress
 			}
 			if link.Type == "" {
 				link.Type = "other"
