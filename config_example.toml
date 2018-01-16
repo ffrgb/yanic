@@ -14,10 +14,10 @@ sites            = []
 
 # interface that has an IP in your mesh network
 [[respondd.interfaces]]
-# name of interface on which this collector is running (ifname)
+# name of interface on which this collector is running
 ifname = "br-ffhb"
 # ip is the own address which is used for sending
-# (optional - without definition used the link-local address)
+# (optional - without definition used a address of ifname)
 ip = "fd2f:5119:f2d::5"
 # multicast address to destination of respondd
 # (optional - without definition used batman default ff02::2:1001)

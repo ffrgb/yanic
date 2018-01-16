@@ -84,7 +84,7 @@ ifname = "br-ffhb"
 
 ### ifname
 {% method %}
-name of interface on which this collector is running (ifname)
+name of interface on which this collector is running.
 {% sample lang="toml" %}
 ```toml
 ifname              = "br-ffhb"
@@ -94,8 +94,7 @@ ifname              = "br-ffhb"
 ### ip
 {% method %}
 IP is the own address which is used for sending.
-If not set or set with empty string it will take the link-local address of the interface.
-(Needed in babel for a mesh-network wide routeable ip addreess)
+If not set or set with empty string it will take an address of ifname.
 {% sample lang="toml" %}
 ```toml
 ip                = "fe80::..."
