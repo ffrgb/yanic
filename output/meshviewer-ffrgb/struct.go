@@ -132,15 +132,15 @@ func NewNode(nodes *runtime.Nodes, n *runtime.Node) *Node {
 		}
 
 		node.Uptime = jsontime.Now().Add(time.Duration(statistic.Uptime) * -time.Second)
-		node.GatewayNexthop = nodes.GetNodeIDbyMAC(statistic.GatewayNexthop)
+		node.GatewayNexthop = nodes.GetNodeIDbyAddress(statistic.GatewayNexthop)
 		if node.GatewayNexthop == "" {
 			node.GatewayNexthop = statistic.GatewayNexthop
 		}
-		node.GatewayIPv4 = nodes.GetNodeIDbyMAC(statistic.GatewayIPv4)
+		node.GatewayIPv4 = nodes.GetNodeIDbyAddress(statistic.GatewayIPv4)
 		if node.GatewayIPv4 == "" {
 			node.GatewayIPv4 = statistic.GatewayIPv4
 		}
-		node.GatewayIPv6 = nodes.GetNodeIDbyMAC(statistic.GatewayIPv6)
+		node.GatewayIPv6 = nodes.GetNodeIDbyAddress(statistic.GatewayIPv6)
 		if node.GatewayIPv6 == "" {
 			node.GatewayIPv6 = statistic.GatewayIPv6
 		}

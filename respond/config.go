@@ -12,8 +12,8 @@ type Config struct {
 }
 
 type InterfaceConfig struct {
-	InterfaceName  string `toml:"ifname"`
-	Port           int    `toml:"port"`
-	IP             string `toml:"ip"`
-	MulticastGroup string `toml:"multicast"`
+	InterfaceName    string `toml:"ifname"`
+	IPAddress        string `toml:"ip_address"`
+	MulticastAddress string `toml:"multicast_address"`
+	Port             int    `toml:"port"`
 }

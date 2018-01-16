@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	wait int
-	port int
-	ip   string
+	wait      int
+	port      int
+	ipAddress string
 )
 
 // queryCmd represents the query command
@@ -34,7 +34,7 @@ var queryCmd = &cobra.Command{
 			ifaceConfig := respond.InterfaceConfig{
 				InterfaceName: iface,
 				Port:          port,
-				IP:            ip,
+				IPAddress:     ipAddress,
 			}
 			ifacesConfigs = append(ifacesConfigs, ifaceConfig)
 		}
@@ -57,5 +57,5 @@ func init() {
 	RootCmd.AddCommand(queryCmd)
 	queryCmd.Flags().IntVar(&wait, "wait", 1, "Seconds to wait for a response")
 	queryCmd.Flags().IntVar(&port, "port", 0, "define a port to listen (if not set or set to 0 the kernel will use a random free port at its own)")
-	queryCmd.Flags().StringVar(&ip, "ip", "", "ip is the own address which is used for sending (optional - without definition used the link-local address)")
+	queryCmd.Flags().StringVar(&ipAddress, "ip", "", "ip address which is used for sending (optional - without definition used the link-local address)")
 }

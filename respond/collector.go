@@ -30,8 +30,8 @@ type Collector struct {
 }
 
 type multicastConn struct {
-	Conn  *net.UDPConn
-	Group net.IP
+	Conn             *net.UDPConn
+	MulticastAddress net.IP
 }
 
 // NewCollector creates a Collector struct
@@ -67,18 +67,18 @@ func (coll *Collector) listenUDP(iface InterfaceConfig) {
 	var addr net.IP
 
 	var err error
-	if iface.IP != "" {
-		addr = net.ParseIP(iface.IP)
+	if iface.IPAddress != "" {
+		addr = net.ParseIP(iface.IPAddress)
 	} else {
-		addr, err = getAddr(iface.InterfaceName)
+		addr, err = getUnicastAddr(iface.InterfaceName)
 		if err != nil {
 			log.Panic(err)
 		}
 	}
 
-	multicastIP := multicastGroup
-	if iface.MulticastGroup != "" {
-		multicastIP = iface.MulticastGroup
+	multicastAddress := multicastAddressDefault
+	if iface.MulticastAddress != "" {
+		multicastAddress = iface.MulticastAddress
 	}
 
 	// Open socket
@@ -94,16 +94,16 @@ func (coll *Collector) listenUDP(iface InterfaceConfig) {
 
 	coll.ifaceToConn[iface.InterfaceName] = conn
 	coll.connections = append(coll.connections, multicastConn{
-		Conn:  conn,
-		Group: net.ParseIP(multicastIP),
+		Conn:             conn,
+		MulticastAddress: net.ParseIP(multicastAddress),
 	})
 
 	// Start receiver
 	go coll.receiver(conn)
 }
 
-// Returns a address for the given interface name
-func getAddr(ifname string) (net.IP, error) {
+// Returns a unicast address of given interface (prefer global unicast address over link local address)
+func getUnicastAddr(ifname string) (net.IP, error) {
 	iface, err := net.InterfaceByName(ifname)
 	if err != nil {
 		return nil, err
@@ -129,7 +129,7 @@ func getAddr(ifname string) (net.IP, error) {
 	if ip != nil {
 		return ip, nil
 	}
-	return nil, fmt.Errorf("unable to find link local unicast address for %s", ifname)
+	return nil, fmt.Errorf("unable to find a unicast address for %s", ifname)
 }
 
 // Start Collector
@@ -169,7 +169,7 @@ func (coll *Collector) sendOnce() {
 func (coll *Collector) sendMulticast() {
 	log.Println("sending multicasts")
 	for _, conn := range coll.connections {
-		coll.sendPacket(conn.Conn, conn.Group)
+		coll.sendPacket(conn.Conn, conn.MulticastAddress)
 	}
 }
 

@@ -203,6 +203,6 @@ func TestLinksNodes(t *testing.T) {
 	assert.Equal(link.TargetAddress, "f4:f2:6d:d7:a3:0a")
 	assert.Equal(link.TQ, float32(0.8))
 
-	nodeid := nodes.GetNodeIDbyMAC("f4:f2:6d:d7:a3:0a")
+	nodeid := nodes.GetNodeIDbyAddress("f4:f2:6d:d7:a3:0a")
 	assert.Equal("f4f26dd7a30a", nodeid)
 }

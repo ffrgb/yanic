@@ -17,10 +17,10 @@ collect_interval = "1m"
 sites            = ["ffhb"]
 
 [[respondd.interfaces]]
-ifname = "br-ffhb"
-#ip = "fe80::..."
-#multicast = "ff02::2:1001"
-#port = 10001
+ifname             = "br-ffhb"
+#ip_address        = "fe80::..."
+#multicast_address = "ff02::2:1001"
+#port              = 10001
 ```
 {% endmethod %}
 
@@ -49,7 +49,7 @@ synchronize      = "1m"
 {% method %}
 How often send request per respondd.
 
-It will send UDP packets with multicast group `ff02::2:1001` and port `1001`.
+It will send UDP packets with multicast address `ff02::2:1001` and port `1001`.
 If a node does not answer after the half time, it will request with the last know address under the port `1001`.
 {% sample lang="toml" %}
 ```toml
@@ -75,10 +75,10 @@ It is possible to have multiple interfaces, just add this group again with new p
 {% sample lang="toml" %}
 ```toml
 [[respondd.interfaces]]
-ifname = "br-ffhb"
-#ip        = "fe80::..."
-#multicast = "ff02::2:1001"
-#port      = 10001
+ifname             = "br-ffhb"
+#ip_address        = "fe80::..."
+#multicast_address = "ff02::2:1001"
+#port              = 10001
 ```
 {% endmethod %}
 
@@ -91,24 +91,24 @@ ifname              = "br-ffhb"
 ```
 {% endmethod %}
 
-### ip
+### ip_address
 {% method %}
-IP is the own address which is used for sending.
+ip address is the own address which is used for sending.
 If not set or set with empty string it will take an address of ifname.
 {% sample lang="toml" %}
 ```toml
-ip                = "fe80::..."
+ip_address          = "fe80::..."
 ```
 {% endmethod %}
 
-### multicast
+### multicast_address
 {% method %}
 Multicast address to destination of respondd.
 If not set or set with empty string it will take the batman default multicast address `ff02::2:1001`
 (Needed in babel for a mesh-network wide routeable multicast addreess `ff05::2:1001`)
 {% sample lang="toml" %}
 ```toml
-multicast         = "ff02::2:1001"
+multicast_address    = "ff02::2:1001"
 ```
 {% endmethod %}
 

@@ -34,11 +34,11 @@ func transform(nodes *runtime.Nodes) *Meshviewer {
 		if nodeinfo := nodeOrigin.Nodeinfo; nodeinfo != nil {
 			if meshes := nodeinfo.Network.Mesh; meshes != nil {
 				for _, mesh := range meshes {
-					for _, mac := range mesh.Interfaces.Wireless {
-						typeList[mac] = "wifi"
+					for _, addr := range mesh.Interfaces.Wireless {
+						typeList[addr] = "wifi"
 					}
-					for _, mac := range mesh.Interfaces.Tunnel {
-						typeList[mac] = "vpn"
+					for _, addr := range mesh.Interfaces.Tunnel {
+						typeList[addr] = "vpn"
 					}
 				}
 			}
