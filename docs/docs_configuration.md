@@ -15,8 +15,9 @@ enable           = true
 # synchronize    = "1m"
 collect_interval = "1m"
 interfaces       = ["br-ffhb"]
-sites            = ["ffhb"]
 #port            = 10001
+#[respondd.sites.example]
+#domains            = ["city"]
 ```
 {% endmethod %}
 
@@ -64,16 +65,6 @@ interfaces       = ["br-ffhb"]
 {% endmethod %}
 
 
-### sites
-{% method %}
-List of sites to save stats for (empty for global only)
-{% sample lang="toml" %}
-```toml
-sites            = ["ffhb"]
-```
-{% endmethod %}
-
-
 ### port
 {% method %}
 Define a port to listen and send the respondd packages.
@@ -81,6 +72,25 @@ If not set or set to 0 the kernel will use a random free port at its own.
 {% sample lang="toml" %}
 ```toml
 port              = 10001
+```
+{% endmethod %}
+
+### [respondd.sites.example]
+{% method %}
+Tables of sites to save stats for (not exists for global only).
+Here is the site _ffhb_.
+{% sample lang="toml" %}
+```toml
+[respondd.sites.ffhb]
+domains            = ["city"]
+```
+{% endmethod %}
+#### domains
+{% method %}
+list of domains on this site to save stats for (empty for global only)
+{% sample lang="toml" %}
+```toml
+domains            = ["city"]
 ```
 {% endmethod %}
 
