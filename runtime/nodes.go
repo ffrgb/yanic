@@ -63,9 +63,7 @@ func (nodes *Nodes) Update(nodeID string, res *data.ResponseData) *Node {
 		}
 		nodes.List[nodeID] = node
 	}
-	if res.NodeInfo != nil {
-		nodes.readIfaces(res.NodeInfo, res.Neighbours)
-	}
+	nodes.readIfaces(res.NodeInfo, res.Neighbours)
 	nodes.Unlock()
 
 	// Update wireless statistics
@@ -236,9 +234,7 @@ func (nodes *Nodes) load() {
 
 			nodes.Lock()
 			for _, node := range nodes.List {
-				if node.Nodeinfo != nil {
-					nodes.readIfaces(node.Nodeinfo, node.Neighbours)
-				}
+				nodes.readIfaces(node.Nodeinfo, node.Neighbours)
 			}
 			nodes.Unlock()
 
