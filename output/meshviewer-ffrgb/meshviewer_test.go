@@ -18,7 +18,7 @@ func TestTransform(t *testing.T) {
 			NodeID: "node_a",
 			Network: data.Network{
 				Mac: "node:a:mac",
-				Mesh: map[string]*data.BatInterface{
+				Mesh: map[string]*data.NetworkInterface{
 					"bat0": {
 						Interfaces: struct {
 							Wireless []string `json:"wireless,omitempty"`
@@ -55,7 +55,7 @@ func TestTransform(t *testing.T) {
 			NodeID: "node_c",
 			Network: data.Network{
 				Mac: "node:c:mac",
-				Mesh: map[string]*data.BatInterface{
+				Mesh: map[string]*data.NetworkInterface{
 					"bat0": {
 						Interfaces: struct {
 							Wireless []string `json:"wireless,omitempty"`
@@ -85,7 +85,7 @@ func TestTransform(t *testing.T) {
 			NodeID: "node_b",
 			Network: data.Network{
 				Mac: "node:b:mac",
-				Mesh: map[string]*data.BatInterface{
+				Mesh: map[string]*data.NetworkInterface{
 					"bat0": {
 						Interfaces: struct {
 							Wireless []string `json:"wireless,omitempty"`
@@ -121,7 +121,7 @@ func TestTransform(t *testing.T) {
 			NodeID: "node_d",
 			Network: data.Network{
 				Mac: "node:d:mac",
-				Mesh: map[string]*data.BatInterface{
+				Mesh: map[string]*data.NetworkInterface{
 					"bat0": {
 						Interfaces: struct {
 							Wireless []string `json:"wireless,omitempty"`

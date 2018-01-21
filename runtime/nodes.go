@@ -47,7 +47,7 @@ func (nodes *Nodes) AddNode(node *Node) {
 	nodes.Lock()
 	defer nodes.Unlock()
 	nodes.List[nodeinfo.NodeID] = node
-	nodes.readIfaces(nodeinfo, node.Neighbours)
+	nodes.readIfaces(nodeinfo)
 }
 
 // Update a Node
@@ -63,7 +63,9 @@ func (nodes *Nodes) Update(nodeID string, res *data.ResponseData) *Node {
 		}
 		nodes.List[nodeID] = node
 	}
-	nodes.readIfaces(res.NodeInfo, res.Neighbours)
+	if res.NodeInfo != nil {
+		nodes.readIfaces(res.NodeInfo)
+	}
 	nodes.Unlock()
 
 	// Update wireless statistics
@@ -179,48 +181,30 @@ func (nodes *Nodes) expire() {
 }
 
 // adds the nodes interface addresses to the internal map
-func (nodes *Nodes) readIfaces(nodeinfo *data.NodeInfo, neighbours *data.Neighbours) {
-	if nodeinfo != nil {
+func (nodes *Nodes) readIfaces(nodeinfo *data.NodeInfo) {
+	nodeID := nodeinfo.NodeID
+	network := nodeinfo.Network
 
-		nodeID := nodeinfo.NodeID
-		network := nodeinfo.Network
-
-		if nodeID == "" {
-			log.Println("nodeID missing in nodeinfo")
-			return
-		}
-
-		addresses := []string{network.Mac}
-
-		for _, batinterface := range network.Mesh {
-			addresses = append(addresses, batinterface.Addresses()...)
-		}
-
-		for _, mac := range addresses {
-			if mac == "" {
-				continue
-			}
-			if oldNodeID, _ := nodes.ifaceToNodeID[mac]; oldNodeID != nodeID {
-				if oldNodeID != "" {
-					log.Printf("override nodeID from %s to %s on MAC address %s", oldNodeID, nodeID, mac)
-				}
-				nodes.ifaceToNodeID[mac] = nodeID
-			}
-		}
+	if nodeID == "" {
+		log.Println("nodeID missing in nodeinfo")
+		return
 	}
-	if neighbours != nil {
-		nodeID := neighbours.NodeID
-		if nodeID == "" {
-			log.Println("nodeID missing in neighbours")
-			return
+
+	addresses := []string{network.Mac}
+
+	for _, iface := range network.Mesh {
+		addresses = append(addresses, iface.Addresses()...)
+	}
+
+	for _, addr := range addresses {
+		if addr == "" {
+			continue
 		}
-		for _, iface := range neighbours.Babel {
-			if oldNodeID, _ := nodes.ifaceToNodeID[iface.LinkLocalAddress]; oldNodeID != nodeID {
-				if oldNodeID != "" {
-					log.Printf("override nodeID from %s to %s on link local address %s", oldNodeID, nodeID, iface.LinkLocalAddress)
-				}
-				nodes.ifaceToNodeID[iface.LinkLocalAddress] = nodeID
+		if oldNodeID, _ := nodes.ifaceToNodeID[addr]; oldNodeID != nodeID {
+			if oldNodeID != "" {
+				log.Printf("override nodeID from %s to %s on MAC address %s", oldNodeID, nodeID, addr)
 			}
+			nodes.ifaceToNodeID[addr] = nodeID
 		}
 	}
 }
@@ -234,7 +218,9 @@ func (nodes *Nodes) load() {
 
 			nodes.Lock()
 			for _, node := range nodes.List {
-				nodes.readIfaces(node.Nodeinfo, node.Neighbours)
+				if node.Nodeinfo != nil {
+					nodes.readIfaces(node.Nodeinfo)
+				}
 			}
 			nodes.Unlock()
 
