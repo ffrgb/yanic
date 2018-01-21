@@ -17,8 +17,7 @@ import (
 
 // Collector for a specificle respond messages
 type Collector struct {
-	connections []multicastConn         // UDP sockets
-	ifaceToConn map[string]*net.UDPConn // map from interface name to UDP socket
+	connections []multicastConn // UDP sockets
 	port        int
 
 	queue    chan *Response // received responses
@@ -38,12 +37,11 @@ type multicastConn struct {
 func NewCollector(db database.Connection, nodes *runtime.Nodes, sites []string, ifaces []InterfaceConfig) *Collector {
 
 	coll := &Collector{
-		db:          db,
-		nodes:       nodes,
-		sites:       sites,
-		queue:       make(chan *Response, 400),
-		stop:        make(chan interface{}),
-		ifaceToConn: make(map[string]*net.UDPConn),
+		db:    db,
+		nodes: nodes,
+		sites: sites,
+		queue: make(chan *Response, 400),
+		stop:  make(chan interface{}),
 	}
 
 	for _, iface := range ifaces {
@@ -60,9 +58,6 @@ func NewCollector(db database.Connection, nodes *runtime.Nodes, sites []string, 
 }
 
 func (coll *Collector) listenUDP(iface InterfaceConfig) {
-	if _, found := coll.ifaceToConn[iface.InterfaceName]; found {
-		log.Panicf("can not listen twice on %s", iface.InterfaceName)
-	}
 
 	var addr net.IP
 
@@ -92,7 +87,6 @@ func (coll *Collector) listenUDP(iface InterfaceConfig) {
 	}
 	conn.SetReadBuffer(maxDataGramSize)
 
-	coll.ifaceToConn[iface.InterfaceName] = conn
 	coll.connections = append(coll.connections, multicastConn{
 		Conn:             conn,
 		MulticastAddress: net.ParseIP(multicastAddress),
@@ -183,16 +177,24 @@ func (coll *Collector) sendUnicasts(seenBefore jsontime.Time) {
 	})
 
 	// Send unicast packets
-	log.Printf("sending unicast to %d nodes", len(nodes))
+	count := 0
 	for _, node := range nodes {
-		conn := coll.ifaceToConn[node.Address.Zone]
-		if conn == nil {
-			log.Printf("unable to find connection for %s", node.Address.Zone)
-			continue
+		send := 0
+		for _, conn := range coll.connections {
+			if node.Address.Zone != "" && conn.Conn.LocalAddr().(*net.UDPAddr).Zone != node.Address.Zone {
+				continue
+			}
+			coll.sendPacket(conn.Conn, node.Address.IP)
+			send++
 		}
-		coll.sendPacket(conn, node.Address.IP)
-		time.Sleep(10 * time.Millisecond)
+		if send == 0 {
+			log.Printf("unable to find connection for %s", node.Address.Zone)
+		} else {
+			time.Sleep(10 * time.Millisecond)
+			count += send
+		}
 	}
+	log.Printf("sending %d unicast pkg for %d nodes", count, len(nodes))
 }
 
 // SendPacket sends a UDP request to the given unicast or multicast address on the first UDP socket
