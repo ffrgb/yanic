@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"log"
 	"net"
 	"strings"
@@ -48,7 +49,17 @@ var queryCmd = &cobra.Command{
 		time.Sleep(time.Second * time.Duration(wait))
 
 		for id, data := range nodes.List {
-			log.Printf("%s: %+v", id, data)
+			jq, err := json.Marshal(data)
+			if err != nil {
+				log.Printf("%s: %+v", id, data)
+			} else {
+				jqNeighbours, err := json.Marshal(data.Neighbours)
+				if err != nil {
+					log.Printf("%s: %s neighbours: %+v", id, string(jq), data.Neighbours)
+				} else {
+					log.Printf("%s: %s neighbours: %s", id, string(jq), string(jqNeighbours))
+				}
+			}
 		}
 	},
 }
